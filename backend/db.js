@@ -1,48 +1,17 @@
-const db = [
-    {
-        matricula: 1,
-        nome: "João Silva",
-        salarioBase: 3000,
-        tipo: "PADRAO"
-    },
-    {
-        matricula: 2,
-        nome: "Maria Santos",
-        salarioBase: 2500,
-        tipo: "COMISSIONADO",
-        valorVendas: 10000,
-        percentualComissao: 5
-    },
-    {
-        matricula: 3,
-        nome: "Carlos Oliveira",
-        salarioBase: 2000,
-        tipo: "PRODUCAO",
-        quantidadeProduzida: 500,
-        valorPorUnidade: 3
-    },
-    {
-        matricula: 4,
-        nome: "Ana Souza",
-        salarioBase: 3500,
-        tipo: "PADRAO"
-    },
-    {
-        matricula: 5,
-        nome: "Pedro Costa",
-        salarioBase: 2800,
-        tipo: "COMISSIONADO",
-        valorVendas: 15000,
-        percentualComissao: 8
-    },
-    {
-        matricula: 6,
-        nome: "Lucas Pereira",
-        salarioBase: 2200,
-        tipo: "PRODUCAO",
-        quantidadeProduzida: 800,
-        valorPorUnidade: 2.5
-    }
-];
+import 'dotenv/config';
+import pg from 'pg';
 
-export default db;
+const { Pool, types } = pg;
+
+// NUMERIC (oid 1700) chega como string por padrão; converte para number
+types.setTypeParser(1700, (valor) => (valor === null ? null : parseFloat(valor)));
+
+const pool = new Pool({
+    connectionString:
+        process.env.DATABASE_URL || 'postgresql://paggo:paggo123@localhost:5432/paggo',
+    // ssl: { rejectUnauthorized: false }, // descomente se o banco for na nuvem (Neon, Render, Supabase...)
+});
+
+pool.on('error', (err) => console.error('Erro inesperado no pool do Postgres:', err));
+
+export default pool;

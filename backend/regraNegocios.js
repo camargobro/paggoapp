@@ -1,6 +1,9 @@
-import db from './db.js';
+import { existeMatricula } from './repository/colaboradorRepository.js';
 
-export function validarColaborador(colaborador, colaboradorIndex = -1) {
+export class ErroValidacao extends Error {}
+
+// ehAtualizacao = true pula a checagem de matrícula duplicada (PUT mantém a própria matrícula)
+export async function validarColaborador(colaborador, { ehAtualizacao = false } = {}) {
     const {
         matricula,
         nome,
@@ -13,62 +16,66 @@ export function validarColaborador(colaborador, colaboradorIndex = -1) {
     } = colaborador;
 
     if (!matricula) {
-        throw new Error("Matrícula é obrigatória");
+        throw new ErroValidacao("Matrícula é obrigatória");
     }
 
-    if (db.some((c, index) => c.matricula === matricula && index !== colaboradorIndex)) {
-        throw new Error("Matrícula já cadastrada");
+    if (!Number.isInteger(matricula) || matricula <= 0 || matricula > 2147483647) {
+        throw new ErroValidacao("Matrícula deve ser um número inteiro positivo");
+    }
+
+    if (!ehAtualizacao && await existeMatricula(matricula)) {
+        throw new ErroValidacao("Matrícula já cadastrada");
     }
 
     if (!nome || nome.trim() === "") {
-        throw new Error("Nome é obrigatório");
+        throw new ErroValidacao("Nome é obrigatório");
     }
 
     if (salarioBase === undefined || salarioBase === null) {
-        throw new Error("Salário base é obrigatório");
+        throw new ErroValidacao("Salário base é obrigatório");
     }
 
     if (salarioBase < 0) {
-        throw new Error("Salário base não pode ser negativo");
+        throw new ErroValidacao("Salário base não pode ser negativo");
     }
 
     if (!["PADRAO", "COMISSIONADO", "PRODUCAO"].includes(tipo)) {
-        throw new Error("Tipo de colaborador inválido");
+        throw new ErroValidacao("Tipo de colaborador inválido");
     }
 
     if (tipo === "COMISSIONADO") {
         if (valorVendas === undefined || valorVendas === null) {
-            throw new Error("Valor das vendas é obrigatório");
+            throw new ErroValidacao("Valor das vendas é obrigatório");
         }
 
         if (valorVendas < 0) {
-            throw new Error("Valor das vendas não pode ser negativo");
+            throw new ErroValidacao("Valor das vendas não pode ser negativo");
         }
 
         if (percentualComissao === undefined || percentualComissao === null) {
-            throw new Error("Percentual de comissão é obrigatório");
+            throw new ErroValidacao("Percentual de comissão é obrigatório");
         }
 
         if (percentualComissao < 0) {
-            throw new Error("Percentual de comissão não pode ser negativo");
+            throw new ErroValidacao("Percentual de comissão não pode ser negativo");
         }
     }
 
     if (tipo === "PRODUCAO") {
         if (quantidadeProduzida === undefined || quantidadeProduzida === null) {
-            throw new Error("Quantidade produzida é obrigatória");
+            throw new ErroValidacao("Quantidade produzida é obrigatória");
         }
 
         if (quantidadeProduzida < 0) {
-            throw new Error("Quantidade produzida não pode ser negativa");
+            throw new ErroValidacao("Quantidade produzida não pode ser negativa");
         }
 
         if (valorPorUnidade === undefined || valorPorUnidade === null) {
-            throw new Error("Valor por unidade é obrigatório");
+            throw new ErroValidacao("Valor por unidade é obrigatório");
         }
 
         if (valorPorUnidade < 0) {
-            throw new Error("Valor por unidade não pode ser negativa");
+            throw new ErroValidacao("Valor por unidade não pode ser negativa");
         }
     }
 }

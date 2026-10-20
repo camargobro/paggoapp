@@ -1,9 +1,10 @@
-import db from '../db.js';
+import { listar } from '../repository/colaboradorRepository.js';
 import { calcularSalario } from '../regraNegocios.js';
 
 export async function getFolhaDePagamento(req, res) {
     try {
-        const folhaDePagamento = db.map(colaborador => {
+        const colaboradores = await listar();
+        const folhaDePagamento = colaboradores.map(colaborador => {
             const salarioFinal = calcularSalario(colaborador);
             const adicional = salarioFinal - colaborador.salarioBase;
 
@@ -25,7 +26,8 @@ export async function getFolhaDePagamento(req, res) {
 
 export async function getResumoFolhaDePagamento(req, res) {
     try {
-        const resumo = db.reduce((acc, colaborador) => {
+        const colaboradores = await listar();
+        const resumo = colaboradores.reduce((acc, colaborador) => {
             const salarioFinal = calcularSalario(colaborador);
             acc.totalSalariosBase += colaborador.salarioBase;
             acc.totalAdicionais += salarioFinal - colaborador.salarioBase;
@@ -33,7 +35,7 @@ export async function getResumoFolhaDePagamento(req, res) {
             acc.totalPorTipo[colaborador.tipo] += salarioFinal;
             return acc;
         }, {
-            quantidadeColaboradores: db.length,
+            quantidadeColaboradores: colaboradores.length,
             totalSalariosBase: 0,
             totalAdicionais: 0,
             totalSalariosFinais: 0,

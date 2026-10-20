@@ -62,6 +62,7 @@ A aplicação permite cadastrar, consultar, editar e excluir colaboradores, alé
 - **Express.js**
 - **API HTTP** com suporte a JSON
 - **CORS**
+- **PostgreSQL** (driver `pg`)
 
 ---
 
@@ -69,6 +70,7 @@ A aplicação permite cadastrar, consultar, editar e excluir colaboradores, alé
 
 ```text
 paggoapp/
+├── docker-compose.yml
 ├── frontend/
 │   ├── index.html
 │   ├── style.css
@@ -78,25 +80,29 @@ paggoapp/
 │   └── favicon.png
 │
 ├── backend/
-│   ├── server.js
-│   ├── db.js
+│   ├── index.js
+│   ├── db.js                      # conexão (Pool) com o PostgreSQL
+│   ├── regraNegocios.js
+│   ├── .env.example
+│   ├── sql/
+│   │   ├── schema.sql             # criação da tabela
+│   │   └── seed.sql               # dados iniciais de exemplo
+│   ├── scripts/initDb.js          # npm run db:init
+│   ├── repository/colaboradorRepository.js
+│   ├── controller/
 │   └── routes/
-│       ├── colaboradorRouter.js
-│       └── folhaPagamentoRouter.js
 │
 └── README.md
 ```
-
-> *Nota: A estrutura acima é ilustrativa e pode variar conforme os ajustes do repositório.*
 
 ---
 
 ## 🚀 Como Executar o Projeto
 
 ### Pré-requisitos
-Certifique-se de ter instalado em sua máquina:
-- [Node.js](https://nodejs.org/)
-- **npm** (geralmente já incluso no Node.js)
+
+- [Node.js](https://nodejs.org/) e **npm**
+- **PostgreSQL** 14+ — via [Docker](https://www.docker.com/) (recomendado) ou instalado localmente
 
 ### Passo a passo
 
@@ -106,23 +112,37 @@ Certifique-se de ter instalado em sua máquina:
    cd paggoapp
    ```
 
-2. **Instale as dependências do backend**
+2. **Suba o PostgreSQL** (com Docker)
+   ```bash
+   docker compose up -d
+   ```
+   *Sem Docker? Crie um banco e um usuário manualmente e ajuste a `DATABASE_URL` no próximo passo.*
+
+3. **Configure as variáveis de ambiente**
    ```bash
    cd backend
-   npm install
+   cp .env.example .env
    ```
-   *(Este comando pressupõe que exista um `package.json` no diretório `backend/`)*
+   O conteúdo padrão já bate com o `docker-compose.yml`:
+   ```
+   PORT=3000
+   DATABASE_URL=postgresql://paggo:paggo123@localhost:5432/paggo
+   ```
 
-3. **Inicie o servidor**
+4. **Instale as dependências e crie a tabela**
    ```bash
-   node server.js
+   npm install
+   npm run db:init
+   ```
+   O `db:init` cria a tabela `colaboradores` e insere 6 colaboradores de exemplo.
+   Para criar só a tabela, sem os exemplos: `npm run db:init -- --sem-seed`.
+
+5. **Inicie o servidor**
+   ```bash
+   npm start
    ```
 
-Por padrão, o servidor será iniciado na porta **3000**. Acesse a aplicação em seu navegador através de:
-
-🔗 [http://localhost:3000](http://localhost:3000)
-
-*(A porta de execução também pode ser alterada por meio da variável de ambiente `PORT`)*
+Acesse a aplicação em [http://localhost:3000](http://localhost:3000).
 
 ---
 
