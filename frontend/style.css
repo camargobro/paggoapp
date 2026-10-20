@@ -354,3 +354,21 @@ td.vazio { text-align: center; color: var(--ink-soft); padding: 24px; }
     .marca img { height: 52px; }
     .cards { grid-template-columns: 1fr; }
 }
+
+/* Busca e filtro da lista de colaboradores */
+.filtros {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.filtro-busca { flex: 1; }
+.filtro-tipo { flex: 0 0 180px; }
+.filtros .btn { white-space: nowrap; }
+.filtros .btn[hidden] { display: none; }
+
+@media (max-width: 860px) {
+    .filtros { flex-wrap: wrap; }
+    .filtro-busca { flex: 1 1 100%; }
+    .filtro-tipo { flex: 1; }
+}

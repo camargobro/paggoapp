@@ -112,6 +112,22 @@
                     <h2>Colaboradores</h2>
                     <span id="contador" class="muted"></span>
                 </div>
+                <div class="filtros" role="search">
+                    <div class="field filtro-busca">
+                        <label for="busca">Buscar</label>
+                        <input type="search" id="busca" placeholder="Nome ou matrícula" autocomplete="off">
+                    </div>
+                    <div class="field filtro-tipo">
+                        <label for="filtroTipo">Tipo</label>
+                        <select id="filtroTipo">
+                            <option value="">Todos</option>
+                            <option value="PADRAO">Padrão</option>
+                            <option value="COMISSIONADO">Comissionado</option>
+                            <option value="PRODUCAO">Produção</option>
+                        </select>
+                    </div>
+                    <button type="button" id="btnLimparFiltros" class="btn" hidden>Limpar filtros</button>
+                </div>
                 <p id="msgLista" class="msg msg-auto" role="status"></p>
                 <div class="table-wrap">
                     <table>

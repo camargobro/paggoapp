@@ -28,6 +28,7 @@ const VIEWS = Object.keys(TITULOS);
 const $ = (id) => document.getElementById(id);
 const brl = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const normalizar = (s) => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 const rotuloTipo = (tipo) => TIPOS[tipo] || esc(tipo);
 const rotuloContagem = (n) => `${n} ${n === 1 ? 'colaborador cadastrado' : 'colaboradores cadastrados'}`;
 const linhaMensagem = (colunas, texto) => `<tr><td colspan="${colunas}" class="vazio">${texto}</td></tr>`;
@@ -80,16 +81,44 @@ async function carregarColaboradores() {
     renderTabela();
 }
 
-function renderTabela() {
-    $('contador').textContent = colaboradores.length ? rotuloContagem(colaboradores.length) : '';
-    $('homeContador').textContent = colaboradores.length ? rotuloContagem(colaboradores.length) : 'Consulte, edite ou exclua.';
+function filtrarColaboradores() {
+    const termo = normalizar($('busca').value);
+    const tipo = $('filtroTipo').value;
 
-    if (!colaboradores.length) {
+    return colaboradores.filter((c) => {
+        if (tipo && c.tipo !== tipo) return false;
+        if (!termo) return true;
+        return normalizar(c.nome).includes(termo) || String(c.matricula).includes(termo);
+    });
+}
+
+function renderTabela() {
+    const total = colaboradores.length;
+    const filtrando = $('busca').value.trim() !== '' || $('filtroTipo').value !== '';
+    const lista = filtrando ? filtrarColaboradores() : colaboradores;
+
+    $('btnLimparFiltros').hidden = !filtrando;
+    $('homeContador').textContent = total ? rotuloContagem(total) : 'Consulte, edite ou exclua.';
+
+    if (!total) {
+        $('contador').textContent = '';
+    } else if (filtrando) {
+        $('contador').textContent = `${lista.length} de ${total} ${total === 1 ? 'colaborador' : 'colaboradores'}`;
+    } else {
+        $('contador').textContent = rotuloContagem(total);
+    }
+
+    if (!total) {
         $('tabelaColaboradores').innerHTML = linhaMensagem(5, 'Nenhum colaborador cadastrado.');
         return;
     }
 
-    $('tabelaColaboradores').innerHTML = colaboradores.map((c) => `
+    if (!lista.length) {
+        $('tabelaColaboradores').innerHTML = linhaMensagem(5, 'Nenhum colaborador encontrado com esses filtros.');
+        return;
+    }
+
+    $('tabelaColaboradores').innerHTML = lista.map((c) => `
         <tr class="${c.matricula === matriculaEmEdicao ? 'editando' : ''}">
             <td>${c.matricula}</td>
             <td>${esc(c.nome)}</td>
@@ -101,6 +130,13 @@ function renderTabela() {
             </td>
         </tr>
     `).join('');
+}
+
+function limparFiltros() {
+    $('busca').value = '';
+    $('filtroTipo').value = '';
+    renderTabela();
+    $('busca').focus();
 }
 
 async function salvarColaborador(event) {
@@ -292,6 +328,9 @@ function iniciar() {
     $('btnLimpar').addEventListener('click', limparFormulario);
     $('tipo').addEventListener('change', mudarCamposTipo);
     $('btnGerarFolha').addEventListener('click', gerarFolha);
+    $('busca').addEventListener('input', renderTabela);
+    $('filtroTipo').addEventListener('change', renderTabela);
+    $('btnLimparFiltros').addEventListener('click', limparFiltros);
 
     $('tabelaColaboradores').addEventListener('click', (e) => {
         const btn = e.target.closest('button[data-acao]');
